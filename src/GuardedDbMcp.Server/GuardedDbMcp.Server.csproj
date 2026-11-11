@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>guarded-db-mcp</AssemblyName>
+    <RootNamespace>GuardedDbMcp.Server</RootNamespace>
+
+    <!-- Packed as a .NET tool that MCP clients can launch (dotnet tool install, or dnx). -->
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>guarded-db-mcp</ToolCommandName>
+    <PackageId>GuardedDbMcp</PackageId>
+    <PackageType>DotnetTool;McpServer</PackageType>
+    <Title>guarded-db-mcp</Title>
+    <Description>Secure MCP server for PostgreSQL and Oracle: LLM agents query through a read-only account, an AST-based SQL guard, row-level policy, PII masking (built-in Turkish recognisers + Presidio) and a hash-chained append-only audit log.</Description>
+    <PackageTags>mcp;model-context-protocol;sql;postgresql;oracle;pii;kvkk;security;llm</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GuardedDbMcp.Core\GuardedDbMcp.Core.csproj" />
+    <ProjectReference Include="..\GuardedDbMcp.Postgres\GuardedDbMcp.Postgres.csproj" />
+    <ProjectReference Include="..\GuardedDbMcp.Oracle\GuardedDbMcp.Oracle.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include=".mcp\server.json" Pack="true" PackagePath="\.mcp\" />
+    <Content Include="..\..\samples\policy.json" Link="samples\policy.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

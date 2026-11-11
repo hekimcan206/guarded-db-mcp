@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.hekimcan206/guarded-db-mcp",
+  "description": "Read-only, policy-guarded SQL access to PostgreSQL or Oracle with PII masking and audit.",
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "nuget",
+      "identifier": "GuardedDbMcp",
+      "version": "1.0.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        { "name": "GuardedDb__Engine", "description": "postgres or oracle", "isRequired": true },
+        { "name": "GuardedDb__ConnectionString", "description": "Connection string of the READ-ONLY database account", "isRequired": true, "isSecret": true },
+        { "name": "GuardedDb__PolicyPath", "description": "Path to the access policy JSON", "isRequired": true },
+        { "name": "GuardedDb__PseudonymKey", "description": "Base64 key (>= 32 bytes) for pseudonyms", "isRequired": true, "isSecret": true },
+        { "name": "GuardedDb__Presidio__Url", "description": "Presidio analyzer base URL (optional)", "isRequired": false }
+      ]
+    }
+  ]
+}
