@@ -70,6 +70,11 @@ public sealed class OracleQueryExecutor(string connectionString) : IQueryExecuto
         {
             throw new StatementTimeoutException($"Statement cancelled after {limits.StatementTimeout.TotalSeconds:0.#} s (statement timeout).", ex);
         }
+        catch (OperationCanceledException ex) when (ex.InnerException is OracleException { Number: UserRequestedCancel } && !cancellationToken.IsCancellationRequested)
+        {
+            // The async ODP.NET path surfaces the server-side break as a cancellation.
+            throw new StatementTimeoutException($"Statement cancelled after {limits.StatementTimeout.TotalSeconds:0.#} s (statement timeout).", ex);
+        }
         finally
         {
             await transaction.RollbackAsync(CancellationToken.None);
