@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="Testcontainers" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.Oracle" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\GuardedDbMcp.Core\GuardedDbMcp.Core.csproj" />
+    <ProjectReference Include="..\..\src\GuardedDbMcp.Postgres\GuardedDbMcp.Postgres.csproj" />
+    <ProjectReference Include="..\..\src\GuardedDbMcp.Oracle\GuardedDbMcp.Oracle.csproj" />
+    <ProjectReference Include="..\..\src\GuardedDbMcp.Server\GuardedDbMcp.Server.csproj" />
+    <ProjectReference Include="..\..\src\GuardedDbMcp.Demo\GuardedDbMcp.Demo.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The exact scripts and policy docker compose uses, so least privilege is tested, not assumed. -->
+    <None Include="..\..\deploy\postgres\init\01-schema.sh" Link="db-init\postgres-01-schema.sh" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\deploy\oracle\init\01-schema.sh" Link="db-init\oracle-01-schema.sh" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\samples\policy.json" Link="policy.json" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="..\GuardedDbMcp.UnitTests\AttackCatalog.cs" Link="AttackCatalog.cs" />
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="AwesomeAssertions" />
+  </ItemGroup>
+
+</Project>

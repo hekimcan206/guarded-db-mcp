@@ -8,5 +8,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/GuardedDbMcp.UnitTests/GuardedDbMcp.UnitTests.csproj" />
+    <Project Path="tests/GuardedDbMcp.IntegrationTests/GuardedDbMcp.IntegrationTests.csproj" />
   </Folder>
 </Solution>
