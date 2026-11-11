@@ -4,22 +4,22 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Restore in its own layer: it only re-runs when package versions or project files change.
+# Restore in its own layer: it only re-runs when package versions or project files change. The packages live in
+# that layer (no BuildKit cache mount): a cached restore layer paired with an empty cache mount on CI made
+# `publish --no-restore` fail with NETSDK1064.
 COPY global.json Directory.Build.props Directory.Packages.props ./
 COPY src/GuardedDbMcp.Core/GuardedDbMcp.Core.csproj src/GuardedDbMcp.Core/
 COPY src/GuardedDbMcp.Postgres/GuardedDbMcp.Postgres.csproj src/GuardedDbMcp.Postgres/
 COPY src/GuardedDbMcp.Oracle/GuardedDbMcp.Oracle.csproj src/GuardedDbMcp.Oracle/
 COPY src/GuardedDbMcp.Server/GuardedDbMcp.Server.csproj src/GuardedDbMcp.Server/
 COPY src/GuardedDbMcp.Demo/GuardedDbMcp.Demo.csproj src/GuardedDbMcp.Demo/
-RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
-    dotnet restore src/GuardedDbMcp.Server/GuardedDbMcp.Server.csproj && \
+RUN dotnet restore src/GuardedDbMcp.Server/GuardedDbMcp.Server.csproj && \
     dotnet restore src/GuardedDbMcp.Demo/GuardedDbMcp.Demo.csproj
 
 COPY .editorconfig ./
 COPY samples/ samples/
 COPY src/ src/
-RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
-    dotnet publish src/GuardedDbMcp.Server/GuardedDbMcp.Server.csproj -c Release --no-restore -o /app/server -p:UseAppHost=false && \
+RUN dotnet publish src/GuardedDbMcp.Server/GuardedDbMcp.Server.csproj -c Release --no-restore -o /app/server -p:UseAppHost=false && \
     dotnet publish src/GuardedDbMcp.Demo/GuardedDbMcp.Demo.csproj -c Release --no-restore -o /app/demo -p:UseAppHost=false
 # Writable directory for the JSONL audit sink, owned by the non-root app user.
 RUN mkdir -p /data
