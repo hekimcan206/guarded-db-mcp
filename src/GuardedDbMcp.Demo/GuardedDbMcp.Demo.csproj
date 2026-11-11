@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>guarded-db-demo</AssemblyName>
+    <Description>Synthetic clinic data, seeding, scripted MCP agent scenarios and end-to-end latency measurement.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="Bogus" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GuardedDbMcp.Core\GuardedDbMcp.Core.csproj" />
+    <ProjectReference Include="..\GuardedDbMcp.Postgres\GuardedDbMcp.Postgres.csproj" />
+  </ItemGroup>
+
+</Project>

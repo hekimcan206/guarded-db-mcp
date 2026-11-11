@@ -1,0 +1,167 @@
+# `docker compose up` runs the whole demo with zero manual steps (all data synthetic):
+#   postgres      PostgreSQL 17; deploy/postgres/init creates the owner, read-only, audit-writer and auditor logins,
+#                 the clinic schema and the append-only audit table
+#   seed          inserts synthetic clinic data with the owner login, then exits
+#   presidio      Microsoft Presidio analyzer (PII detection in free text)
+#   mcp           guarded-db-mcp over Streamable HTTP at http://localhost:18080/mcp (bearer key below)
+#   agent         scripted agent: normal questions + attack cases through MCP, verifies the audit chain,
+#                 prints DEMO_OK and exits 0
+# Oracle variant: `docker compose --profile oracle up` adds Oracle 23ai Free with the same flow on port 18081.
+name: guarded-db-mcp
+
+x-image: &image
+  image: guarded-db-mcp:local
+  build:
+    context: .
+    dockerfile: Dockerfile
+
+x-server-env: &server-env
+  GuardedDb__PseudonymKey: ${PSEUDONYM_KEY:-Y29tcG9zZS1kZW1vLXBzZXVkb255bS1rZXktbm90LWZvci1yZWFsLWRhdGE=}
+  GuardedDb__Presidio__Url: http://presidio:3000/
+  GuardedDb__Presidio__FailureMode: Closed
+  # SHA-256 of the demo bearer key "${AGENT_KEY:-demo-clinic1-key-not-for-production}"; only the hash is configured.
+  GuardedDb__Clients__agent_clinic_1__KeySha256: ${AGENT_KEY_SHA256:-206dbca3d511754ade5d7d319485010469f389c4a982110912fa5bbf70a600e8}
+  GuardedDb__Clients__agent_clinic_1__Attributes__clinic_id: "1"
+  # Optional override of the policy row budget (load tests); empty keeps the policy value.
+  GuardedDb__RowBudgetPerHour: ${ROW_BUDGET_PER_HOUR:-}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: clinicdb
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres-dev-only}
+      OWNER_PASSWORD: ${OWNER_PASSWORD:-OwnerDev1}
+      READER_PASSWORD: ${READER_PASSWORD:-ReaderDev1}
+      AUDIT_WRITER_PASSWORD: ${AUDIT_WRITER_PASSWORD:-AuditWriterDev1}
+      AUDITOR_PASSWORD: ${AUDITOR_PASSWORD:-AuditorDev1}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-25542}:5432"
+    volumes:
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d clinicdb"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+
+  seed:
+    <<: *image
+    entrypoint: ["dotnet", "/app/demo/guarded-db-demo.dll"]
+    command: ["seed", "--engine", "postgres", "--connection", "Host=postgres;Database=clinicdb;Username=clinic_owner;Password=${OWNER_PASSWORD:-OwnerDev1};GSS Encryption Mode=Disable"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  presidio:
+    image: mcr.microsoft.com/presidio-analyzer:2.2.362
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 20s
+
+  mcp:
+    <<: *image
+    environment:
+      <<: *server-env
+      GuardedDb__Engine: postgres
+      GuardedDb__ConnectionString: Host=postgres;Database=clinicdb;Username=guarded_reader;Password=${READER_PASSWORD:-ReaderDev1};GSS Encryption Mode=Disable
+      GuardedDb__Audit__Sink: Postgres
+      GuardedDb__Audit__ConnectionString: Host=postgres;Database=clinicdb;Username=guarded_audit_writer;Password=${AUDIT_WRITER_PASSWORD:-AuditWriterDev1};GSS Encryption Mode=Disable
+    ports:
+      - "127.0.0.1:${MCP_PORT:-18080}:8080"
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      presidio:
+        condition: service_healthy
+    # No container HEALTHCHECK: the chiseled image has no shell or curl; probe http://localhost:18080/health.
+    restart: unless-stopped
+
+  agent:
+    <<: *image
+    entrypoint: ["dotnet", "/app/demo/guarded-db-demo.dll"]
+    command:
+      - scenarios
+      - --url
+      - http://mcp:8080/mcp
+      - --key
+      - ${AGENT_KEY:-demo-clinic1-key-not-for-production}
+      - --engine
+      - postgres
+      - --auditor
+      - Host=postgres;Database=clinicdb;Username=guarded_auditor;Password=${AUDITOR_PASSWORD:-AuditorDev1};GSS Encryption Mode=Disable
+    depends_on:
+      mcp:
+        condition: service_started
+    restart: "no"
+
+  # ---- Oracle 23ai Free variant (docker compose --profile oracle up) ----------------------------------
+  oracle:
+    profiles: ["oracle"]
+    image: gvenzl/oracle-free:23-slim-faststart
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:-sys-dev-only}
+      OWNER_PASSWORD: ${OWNER_PASSWORD:-OwnerDev1}
+      READER_PASSWORD: ${READER_PASSWORD:-ReaderDev1}
+    ports:
+      - "127.0.0.1:${ORACLE_PORT:-25522}:1521"
+    volumes:
+      - ./deploy/oracle/init:/container-entrypoint-initdb.d:ro
+      - oradata:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 5s
+      timeout: 5s
+      retries: 80
+      start_period: 10s
+
+  seed-oracle:
+    <<: *image
+    profiles: ["oracle"]
+    entrypoint: ["dotnet", "/app/demo/guarded-db-demo.dll"]
+    command: ["seed", "--engine", "oracle", "--connection", "Data Source=oracle:1521/FREEPDB1;User Id=clinic;Password=${OWNER_PASSWORD:-OwnerDev1}"]
+    depends_on:
+      oracle:
+        condition: service_healthy
+    restart: "no"
+
+  mcp-oracle:
+    <<: *image
+    profiles: ["oracle"]
+    environment:
+      <<: *server-env
+      GuardedDb__Engine: oracle
+      GuardedDb__ConnectionString: Data Source=oracle:1521/FREEPDB1;User Id=guarded_reader;Password=${READER_PASSWORD:-ReaderDev1}
+      GuardedDb__Audit__Sink: Jsonl
+      GuardedDb__Audit__Path: /data/audit-oracle.jsonl
+    ports:
+      - "127.0.0.1:${MCP_ORACLE_PORT:-18081}:8080"
+    volumes:
+      - audit-oracle:/data
+    depends_on:
+      seed-oracle:
+        condition: service_completed_successfully
+      presidio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  agent-oracle:
+    <<: *image
+    profiles: ["oracle"]
+    entrypoint: ["dotnet", "/app/demo/guarded-db-demo.dll"]
+    command: ["scenarios", "--url", "http://mcp-oracle:8080/mcp", "--key", "${AGENT_KEY:-demo-clinic1-key-not-for-production}", "--engine", "oracle"]
+    depends_on:
+      mcp-oracle:
+        condition: service_started
+    restart: "no"
+
+volumes:
+  pgdata:
+  oradata:
+  audit-oracle:

@@ -26,3 +26,6 @@ appsettings.*.local.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Benchmark run output (curated results live in benchmarks/results)
+benchmarks/BenchmarkDotNet.Artifacts/

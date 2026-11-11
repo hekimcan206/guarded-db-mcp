@@ -23,6 +23,9 @@ public sealed class GuardedDbOptions
 
     public string PolicyPath { get; set; } = Path.Combine(AppContext.BaseDirectory, "samples", "policy.json");
 
+    /// <summary>Optional override of the policy's rowBudgetPerHour (e.g. for load tests); empty keeps the policy value.</summary>
+    public string RowBudgetPerHour { get; set; } = string.Empty;
+
     /// <summary>Base64, at least 32 bytes. Keys pseudonyms; rotate it and old pseudonyms stop matching.</summary>
     public string PseudonymKey { get; set; } = string.Empty;
 

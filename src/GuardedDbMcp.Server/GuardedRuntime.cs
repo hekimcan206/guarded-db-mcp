@@ -87,7 +87,10 @@ public static class GuardedRuntime
         services.AddSingleton(options);
         services.AddSingleton(executor);
         services.AddSingleton(guard);
-        services.AddSingleton(new RowBudget(guard.Policy.Limits.RowBudgetPerHour));
+        var budget = int.TryParse(options.RowBudgetPerHour, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var overridden)
+            ? overridden
+            : guard.Policy.Limits.RowBudgetPerHour;
+        services.AddSingleton(new RowBudget(budget));
         services.AddSingleton(new ValueMasker(options.PseudonymKeyBytes()));
         services.AddHttpClient("presidio");
         services.AddSingleton(sp =>
