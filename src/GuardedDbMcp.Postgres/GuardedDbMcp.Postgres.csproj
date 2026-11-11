@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>PostgreSQL executor, catalog and append-only audit sink for guarded-db-mcp.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GuardedDbMcp.Core\GuardedDbMcp.Core.csproj" />
+  </ItemGroup>
+
+</Project>

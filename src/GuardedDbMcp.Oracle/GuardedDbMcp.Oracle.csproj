@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Oracle (ODP.NET managed) executor and catalog for guarded-db-mcp.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GuardedDbMcp.Core\GuardedDbMcp.Core.csproj" />
+  </ItemGroup>
+
+</Project>

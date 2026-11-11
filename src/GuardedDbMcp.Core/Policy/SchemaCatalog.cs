@@ -27,9 +27,10 @@ public sealed class SchemaCatalog(IReadOnlyDictionary<string, IReadOnlyList<Cata
                 continue;
             }
 
-            foreach (var name in table.Columns.Keys)
+            foreach (var (name, column) in table.Columns)
             {
-                if (!columns.Any(c => c.Name == name))
+                // A denied column the account cannot even see (column grant, view) is the stronger outcome.
+                if (!column.Deny && !columns.Any(c => c.Name == name))
                 {
                     problems.Add($"Column {table.Name}.{name} is in the policy but not in the table.");
                 }

@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/GuardedDbMcp.Core/GuardedDbMcp.Core.csproj" />
+    <Project Path="src/GuardedDbMcp.Postgres/GuardedDbMcp.Postgres.csproj" />
+    <Project Path="src/GuardedDbMcp.Oracle/GuardedDbMcp.Oracle.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/GuardedDbMcp.UnitTests/GuardedDbMcp.UnitTests.csproj" />
