@@ -105,7 +105,7 @@ docker compose logs agent    # scenario table, audit verification, DEMO_OK postg
 ```
 
 The MCP endpoint is then at `http://localhost:18080/mcp` (bearer key `demo-clinic1-key-not-for-production`,
-development only). `docker compose --profile oracle up` runs the same flow on Oracle 23ai Free at port 18081.
+development only). `docker compose --profile oracle up` runs the same flow on Oracle 23ai Free at port 18081. Verified locally: `17/17 scenarios passed`, `DEMO_OK oracle`, and `guarded-db-mcp audit verify --file /data/audit-oracle.jsonl` reports `audit chain OK: 17 records`.
 
 Real output of the scripted agent (17 scenarios through a real MCP client):
 
