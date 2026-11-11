@@ -1,0 +1,46 @@
+{
+  // Access policy for the synthetic clinic schema. Table and column names are case-insensitive here and folded
+  // per engine (lower-case on PostgreSQL, upper-case on Oracle), so one file serves both demos.
+  "defaultSchema": "clinic",
+  "limits": {
+    "maxRows": 200,
+    "statementTimeoutSeconds": 5,
+    "maxSqlLength": 8000,
+    "rowBudgetPerHour": 5000
+  },
+  "tables": {
+    "clinics": {
+      "description": "Clinics (branches). One row per clinic; not personal data."
+    },
+    "patients": {
+      "description": "Patients registered at the caller's clinic.",
+      "rowFilter": "clinic_id = @clinic_id",
+      "columns": {
+        "full_name": { "pii": "PersonName", "mask": "Pseudonym" },
+        "tckn": { "pii": "NationalId", "mask": "Partial", "keepLast": 2 },
+        "phone": { "pii": "Phone", "mask": "Partial", "keepLast": 2 },
+        "email": { "pii": "Email", "mask": "Redact" },
+        "birth_date": { "pii": "BirthDate", "mask": "Redact" }
+      }
+    },
+    "appointments": {
+      "description": "Appointments at the caller's clinic. notes is free text written by staff.",
+      "rowFilter": "clinic_id = @clinic_id"
+    },
+    "invoices": {
+      "description": "Invoices for appointments at the caller's clinic.",
+      "rowFilter": "clinic_id = @clinic_id",
+      "columns": {
+        "iban": { "pii": "Iban", "mask": "Partial", "keepLast": 4 }
+      }
+    },
+    "staff": {
+      "description": "Clinic staff directory.",
+      "rowFilter": "clinic_id = @clinic_id",
+      "columns": {
+        "full_name": { "pii": "PersonName", "mask": "Pseudonym" },
+        "password_hash": { "deny": true }
+      }
+    }
+  }
+}
