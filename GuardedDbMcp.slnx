@@ -10,4 +10,7 @@
     <Project Path="tests/GuardedDbMcp.UnitTests/GuardedDbMcp.UnitTests.csproj" />
     <Project Path="tests/GuardedDbMcp.IntegrationTests/GuardedDbMcp.IntegrationTests.csproj" />
   </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/GuardedDbMcp.Benchmarks/GuardedDbMcp.Benchmarks.csproj" />
+  </Folder>
 </Solution>

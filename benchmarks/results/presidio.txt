@@ -1,0 +1,5 @@
+200 free-text cells, 8759 characters
+built-in recognisers           median      1.19 ms  ->     167940 cells/s
+presidio, batched              median    362.63 ms  ->        552 cells/s
+presidio, one call per cell    median   2594.65 ms  ->         77 cells/s
+Turkish relative names found as PERSON by Presidio (en model): 33/64 = 51.6%
