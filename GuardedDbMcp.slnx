@@ -2,4 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/GuardedDbMcp.Core/GuardedDbMcp.Core.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GuardedDbMcp.UnitTests/GuardedDbMcp.UnitTests.csproj" />
+  </Folder>
 </Solution>
