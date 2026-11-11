@@ -99,7 +99,7 @@ public abstract class EngineContractTests(IEngineFixture fixture)
         var watch = Stopwatch.StartNew();
 
         var response = await service.QueryAsync(
-            Defaults.Clinic1, "SELECT COUNT(*) FROM appointments a CROSS JOIN appointments b CROSS JOIN appointments c", null, Ct);
+            Defaults.Clinic1, "SELECT COUNT(*) FROM appointments a CROSS JOIN appointments b CROSS JOIN appointments c WHERE a.status || b.department || c.status LIKE '%never%'", null, Ct);
 
         response.Error.Should().Be("StatementTimeout", response.Message);
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(15));

