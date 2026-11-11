@@ -56,6 +56,15 @@ jobs:
       - name: Build (warnings are errors)
         run: dotnet build --no-restore --configuration Release
 
+      # Testcontainers pulls through the Docker API with a 100 s HTTP timeout; the Oracle and Presidio images
+      # can take longer than that on a fresh runner, so they are pulled up front, in parallel.
+      - name: Pre-pull integration test images
+        run: |
+          docker pull postgres:17-alpine &
+          docker pull gvenzl/oracle-free:23-slim-faststart &
+          docker pull mcr.microsoft.com/presidio-analyzer:2.2.362 &
+          wait
+
       # Unit + FsCheck property tests, then integration tests that start postgres:17-alpine,
       # gvenzl/oracle-free:23-slim-faststart and the Presidio analyzer through Testcontainers.
       - name: Test
